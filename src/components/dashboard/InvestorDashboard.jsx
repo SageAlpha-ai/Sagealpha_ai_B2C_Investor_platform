@@ -21,6 +21,7 @@ import {
   Loader2,
 } from "lucide-react";
 import CONFIG from "../../config";
+import Navbar from "../Navbar";
 
 const PAIN_POINTS = [
   {
@@ -243,6 +244,7 @@ function InvestorDashboard() {
 
   return (
     <div className="min-h-screen bg-[var(--bg)] text-[var(--text)]">
+      <Navbar />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
 
         {/* ── Greeting ── */}
