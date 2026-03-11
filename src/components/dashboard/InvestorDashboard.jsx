@@ -245,14 +245,9 @@ function InvestorDashboard() {
   return (
     <div className="min-h-screen bg-[var(--bg)] text-[var(--text)]">
       <Navbar />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-4 pb-6 sm:pb-8">
 
-        {/* ── Greeting ── */}
-        {/* <div className="flex items-center gap-2 mb-6">
-          <span className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[var(--text)]">
-            {greeting}, Mangesh 👋
-          </span>
-        </div> */}
+
 
         {/* ── Hero Research Block ── */}
         <div className="relative rounded-3xl overflow-hidden mb-8 shadow-xl">
@@ -485,7 +480,7 @@ function InvestorDashboard() {
               label="Add stocks to your watchlist"
               sub="Track your favourite stocks and get instant AI signals"
               cta="Add Stocks"
-              onClick={() => {}}
+              onClick={() => { }}
               accent="yellow"
             />
           </div>

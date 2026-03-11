@@ -2,7 +2,6 @@ import React, { useMemo, useState } from "react";
 import { Menu, X } from "lucide-react";
 
 export default function Navbar({
-  brand = "stockinsights.ai",
   logoSrc = "/logo/logo.png",
   links,
   onSignIn,
@@ -27,13 +26,9 @@ export default function Navbar({
           <a href="/" className="flex items-center gap-2">
             <img
               src={logoSrc}
-              alt={`${brand} logo`}
-              className="h-9 w-9 sm:h-10 sm:w-10 rounded object-contain"
+              className="h-16 w-auto sm:h-10 object-contain"
               loading="eager"
             />
-            <span className="text-base font-extrabold tracking-tight text-slate-900">
-              {brand}
-            </span>
           </a>
 
           <nav className="hidden md:flex items-center gap-8 text-sm font-semibold text-slate-700">
