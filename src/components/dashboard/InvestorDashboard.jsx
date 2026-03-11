@@ -287,6 +287,7 @@ function InvestorDashboard() {
             {/* problems list */}
             <div className="flex flex-col items-center gap-1.5 sm:gap-2 mb-8 w-full max-w-3xl mx-auto text-[13px] sm:text-[15px] text-white font-medium tracking-wide">
               <div className="flex flex-wrap justify-center items-center gap-x-2 sm:gap-x-3">
+                <span className="text-blue-300/50 text-[10px] sm:text-xs">●</span>
                 <span>Don't know how to research</span>
                 <span className="text-blue-300/50 text-[10px] sm:text-xs">●</span>
                 <span>Don't know how to evaluate</span>
@@ -296,11 +297,11 @@ function InvestorDashboard() {
               <div className="flex flex-wrap justify-center items-center gap-x-2 sm:gap-x-3">
                 <span className="sm:hidden">Panic due to crash</span>
                 <span className="sm:hidden text-blue-300/50 text-[10px] sm:text-xs">●</span>
-                <span>Fear of missing out</span>
+                {/* <span>Fear of missing out</span>
                 <span className="text-blue-300/50 text-[10px] sm:text-xs">●</span>
                 <span>No confidence & experience</span>
                 <span className="text-blue-300/50 text-[10px] sm:text-xs">●</span>
-                <span>No allocation</span>
+                <span>No allocation</span> */}
               </div>
             </div>
             <p className="text-base sm:text-lg text-white/80 font-medium max-w-xl mb-8 leading-relaxed mx-auto">
@@ -654,10 +655,10 @@ function ReviewCard({ story, size = "normal" }) {
           </div>
         </div>
 
-        <div className="flex flex-col items-end gap-1">
+        {/* <div className="flex flex-col items-end gap-1">
           <StarRating count={story.rating} />
           <span className="text-[10px] text-[var(--text-muted)]">{story.date}</span>
-        </div>
+        </div> */}
       </div>
 
       {/* helpful count */}
