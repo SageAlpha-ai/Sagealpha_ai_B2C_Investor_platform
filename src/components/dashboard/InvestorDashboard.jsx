@@ -301,7 +301,7 @@ function InvestorDashboard() {
                 <span className="text-blue-300/50 text-[10px] sm:text-xs">●</span>
                 <span>No confidence & experience</span>
                 <span className="text-blue-300/50 text-[10px] sm:text-xs">●</span>
-                <span>No allocation</span> */}
+                <span>No allocation time</span> */}
               </div>
             </div>
             <p className="text-base sm:text-lg text-white/80 font-medium max-w-xl mb-8 leading-relaxed mx-auto">
