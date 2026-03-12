@@ -245,7 +245,7 @@ function InvestorDashboard() {
   return (
     <div className="min-h-screen bg-[var(--bg)] text-[var(--text)]">
       <Navbar />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-4 pb-6 sm:pb-8">
+      <div className="w-full mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 2xl:px-16 pt-4 pb-6 sm:pb-8">
 
 
 
