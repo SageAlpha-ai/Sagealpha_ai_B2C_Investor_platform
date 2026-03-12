@@ -1,8 +1,17 @@
 import React from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import InvestorDashboard from "./components/dashboard/InvestorDashboard";
+import Dashboard from "./pages/dashboard";
 
 function App() {
-  return <InvestorDashboard />;
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<InvestorDashboard />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+      </Routes>
+    </Router>
+  );
 }
 
 export default App;

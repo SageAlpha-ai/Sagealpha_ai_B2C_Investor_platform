@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import SignupPopup from "../auth/SignupPopup";
 import {
   Sparkles,
   Bookmark,
@@ -79,7 +81,7 @@ const SUCCESS_STORIES = [
     tagColor: "bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300",
     headline: "Cut my research time from 3 hours to 15 minutes",
     review:
-      "I live in a tier 2 city where we do not really have access to professional investment advisers. Most people in my circle are following random tips and pieces of advice from WhatsApp groups and friends, and they end up losing money because there is no research done on the decision they are making. I recently came across this research and insights platform, and I must say it is quite different from other places where I would be following tips and pieces of advice. Here, I would be able to get insights and understand the rationale behind the decision I would be making. It is early days for me, but the concept of data-driven insights as opposed to following tips is something I really appreciate.",
+      "I live in a tier-2 city, and we do not really get professional financial experts around us. Most of my friends are using random WhatsApp messages for stock recommendations, and to be honest, all of us have ended up losing money because there is no proper research done behind those messages. The thing I like about this platform is that it actually gives real insights and data, so I can understand why I’m putting my money into a particular stock rather than blindly following someone’s advice. ",
     stock: "TITAN",
     outcome: "Avoided ₹80,000 loss",
     outcomeColor: "text-green-600 dark:text-green-400",
@@ -97,8 +99,7 @@ const SUCCESS_STORIES = [
     tag: "Professional Use",
     tagColor: "bg-rose-100 text-rose-700 dark:bg-rose-900/50 dark:text-rose-300",
     headline: "My clients actually trust my recommendations now",
-    review:
-      "Running a small advisory for HNI clients means I can't afford to be wrong. SageAlpha's valuation breakdown and bull/bear case structure is exactly what I show clients when justifying a position. The Bajaj Finance report saved a client from averaging down at the wrong time. Genuinely institutional-grade output.",
+    review: "Being in a small advisory for HNI clients means I cannot afford to be wrong. SageAlpha’s breakdown of valuation and bull/bear case is precisely what I present to clients when explaining my rationale for holding a particular stock. The Bajaj Finance report literally prevented my client from averaging into a stock at the worst time. Honestly institutional grade output.",
     stock: "BAJFINANCE",
     outcome: "Retained 3 key clients",
     outcomeColor: "text-blue-600 dark:text-blue-400",
@@ -116,8 +117,7 @@ const SUCCESS_STORIES = [
     tag: "First-time Buyer",
     tagColor: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300",
     headline: "Finally understand what I'm actually buying",
-    review:
-      "I've been investing for 2 years but honestly was just following Twitter and YouTube. Ran a SageAlpha report on Zomato when everyone was hyping it — the report clearly showed the path to profitability was real and the risk was priced in. I took a position with actual conviction instead of FOMO. Up 34% since.",
+    review: "I’ve been investing for 2 years now, but to be honest with everyone, I was basically just following Twitter and YouTube. Ran a report for my clients on Zomato when everyone was calling it. And lo and behold, SageAlpha’s report clearly laid out how Zomato would achieve profitability and how the risk was already priced in. I was able to actually invest in it with conviction instead of FOMO and it’s gone up 34% for me.",
     stock: "ZOMATO",
     outcome: "+34% in 6 months",
     outcomeColor: "text-green-600 dark:text-green-400",
@@ -136,7 +136,7 @@ const SUCCESS_STORIES = [
     tagColor: "bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300",
     headline: "The promoter pledging flag saved us from a 40% drawdown",
     review:
-      "I had like 4-5 stocks in my portfolio, and it was always difficult for me to decide when to buy more, hold, or sell those stocks. In most cases, it was like a guessing game or following random opinions floating around online. It got really frustrating and stressful for me to make investments like this.But now, with the help of sagealpha.ai research and insights platform, I feel way more confident about my investments. It’s not just showing me the price of the stocks; it’s giving me proper analysis and insights about the company, and it’s showing me signs of whether the stock is still worth investing in or if there are more risks involved in it. For small investors like me, especially those who don’t have proper guidance from experts, it’s a huge help for me to make proper and informed decisions instead of acting on my emotions and following what’s happening in the market.",
+      "Earlier, I used to follow random opinions from the internet for my portfolio, and it always seemed like a game of guesswork. But now, with SageAlpha.ai, I get proper analysis done rather than just price charts. It gives a proper idea of whether a stock is good to invest in or not, which gives me a sense of confidence.",
     stock: "Mid-cap (NDA)",
     outcome: "Avoided 38% drawdown",
     outcomeColor: "text-green-600 dark:text-green-400",
@@ -203,15 +203,24 @@ async function generateStockReport(ticker) {
 }
 
 function InvestorDashboard() {
+  const navigate = useNavigate();
   const [input, setInput] = useState("");
   const [reportData, setReportData] = useState(null);
   const [isReportLoading, setIsReportLoading] = useState(false);
   const [reportError, setReportError] = useState("");
+  const [isSignupOpen, setIsSignupOpen] = useState(false);
 
   const handleGenerateReport = async (e) => {
     e.preventDefault();
     const value = input.trim();
     if (!value) return;
+
+    const token = localStorage.getItem('sagealpha_token');
+    if (!token) {
+      setIsSignupOpen(true);
+      return;
+    }
+
     setReportError("");
     setIsReportLoading(true);
     try {
@@ -225,6 +234,13 @@ function InvestorDashboard() {
   };
 
   const handleQuickPick = (t) => {
+    const token = localStorage.getItem('sagealpha_token');
+    if (!token) {
+      setInput(t);
+      setIsSignupOpen(true);
+      return;
+    }
+
     setInput(t);
     setReportError("");
     setIsReportLoading(true);
@@ -245,6 +261,11 @@ function InvestorDashboard() {
   return (
     <div className="min-h-screen bg-[var(--bg)] text-[var(--text)]">
       <Navbar />
+      <SignupPopup
+        isOpen={isSignupOpen}
+        onClose={() => setIsSignupOpen(false)}
+        onSuccess={() => navigate('/dashboard')}
+      />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-4 pb-6 sm:pb-8">
 
 
@@ -386,163 +407,48 @@ function InvestorDashboard() {
         {/* ── Success Stories ── */}
         <SuccessStoriesSection />
 
-        <div className="mb-10">
-          <div className="mb-5">
-            <h2 className="text-xl sm:text-2xl font-extrabold text-[var(--text)]">
-              Sound familiar?
-            </h2>
-            {/* <p className="text-sm text-[var(--text-muted)] mt-1">
-              Every serious investor hits these walls. Here's what makes research hard.
-            </p> */}
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {PAIN_POINTS.map((p, i) => (
-              <div
-                key={i}
-                className={`rounded-2xl border ${p.border} ${p.bg} p-5 flex flex-col gap-3 shadow-sm hover:shadow-md transition-shadow`}
-              >
-                <div className={`w-10 h-10 rounded-xl ${p.iconBg} flex items-center justify-center ${p.iconColor} flex-shrink-0`}>
-                  {p.icon}
-                </div>
-                <div>
-                  <h3 className="text-sm font-bold text-[var(--text)] mb-1">{p.title}</h3>
-                  <p className="text-xs text-[var(--text-muted)] leading-relaxed">{p.desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+        {/* ── Firm Logos Carousel ── */}
+        <FirmLogosSection />
 
-        {/* ── Timeline ── */}
-        <div className="mt-8">
-          <div className="flex items-center justify-between mb-5">
-            <div>
-              <h2 className="text-xl sm:text-2xl font-extrabold text-[var(--text)]">Market Timeline</h2>
-              <p className="text-xs text-[var(--text-muted)] mt-0.5">Latest corporate actions &amp; filings</p>
-            </div>
-            <button className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold border border-[var(--border)] rounded-lg text-[var(--text)] bg-[var(--card-bg)] shadow-sm hover:bg-[var(--hover)] transition">
-              Top Stories
-              <ChevronRight className="w-3.5 h-3.5 text-[var(--text-muted)]" />
-            </button>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <TimelineCard
-              category="Board Meeting Outcome"
-              time="1 hour ago"
-              title="IRFC Board: 2nd Interim Dividend Declared; Rs.70,000 Cr Borrowing Programme Approved"
-              description="On 09-Mar-2026 IRFC's Board approved a second interim dividend for FY2025-26 with record date 13-Mar-2026; authorised market borrowings up to Rs.70,000 crore for FY2026-27 and revised multiple corporate policies."
-              ticker="IRFC"
-              price="97.50"
-              change="1.96%"
-              changeType="down"
-              tag="Dividend"
-            />
-            <TimelineCard
-              category="Board Meeting Outcome"
-              time="2 hours ago"
-              title="Board approves 2nd interim dividend; sanctions Rs.70,000 crore borrowing programme"
-              description="Board declared a second interim dividend with record date 13 Mar 2026 and payment within 30 days; approved market borrowings up to Rs.70,000 crore for FY2026-27 and revised multiple policies."
-              ticker="IRFC"
-              price="97.50"
-              change="1.96%"
-              changeType="down"
-              tag="Policy"
-            />
-            <TimelineCard
-              category="Board Meeting Outcome"
-              time="3 hours ago"
-              title="IRFC Board: Interim Dividend, Rs.70,000 Crore Borrowing Programme &amp; Policy Revisions"
-              description="Board (09-Mar-2026) approved a second interim dividend; record date 13-Mar-2026; authorised market borrowings up to Rs.70,000 crore for FY2026-27; and approved multiple governance policies."
-              ticker="IRFC"
-              price="97.50"
-              change="1.96%"
-              changeType="down"
-              tag="Borrowing"
-            />
-          </div>
-        </div>
 
-        {/* ── Watchlist + Portfolio side by side ── */}
-        <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
-          {/* Watchlist */}
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg sm:text-xl font-extrabold text-[var(--text)]">Watchlist Movers</h2>
-              <button
-                type="button"
-                disabled
-                className="text-xs text-[var(--text-muted)] font-semibold flex items-center gap-1 cursor-not-allowed opacity-70"
-              >
-                Manage <ChevronRight className="w-3.5 h-3.5" />
-              </button>
-            </div>
-            <EmptyStateCard
-              icon={<Star className="w-6 h-6 text-yellow-500" />}
-              label="Add stocks to your watchlist"
-              sub="Track your favourite stocks and get instant AI signals"
-              cta="Add Stocks"
-              onClick={() => { }}
-              accent="yellow"
-            />
-          </div>
-
-          {/* Portfolio */}
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg sm:text-xl font-extrabold text-[var(--text)]">Portfolio Movers</h2>
-              <button className="text-xs text-[var(--accent)] font-semibold hover:underline flex items-center gap-1">
-                Connect <ChevronRight className="w-3.5 h-3.5" />
-              </button>
-            </div>
-            <EmptyStateCard
-              icon={<BarChart2 className="w-6 h-6 text-blue-500" />}
-              label="Connect your portfolio"
-              sub="See real-time P&L, allocation drift and AI-driven rebalancing tips"
-              cta="Connect Portfolio"
-              onClick={() => { }}
-              accent="blue"
-            />
-          </div>
-        </div>
       </div>
     </div>
   );
 }
 
-function EmptyStateCard({ icon, label, sub, cta, onClick, accent }) {
-  const accentMap = {
-    yellow: {
-      ring: "border-yellow-200 dark:border-yellow-800/40",
-      bg: "bg-yellow-50/60 dark:bg-yellow-950/20",
-      btnBg: "bg-yellow-400 hover:bg-yellow-300 text-slate-900",
-    },
-    blue: {
-      ring: "border-blue-200 dark:border-blue-800/40",
-      bg: "bg-blue-50/60 dark:bg-blue-950/20",
-      btnBg: "bg-[var(--accent)] hover:opacity-90 text-white",
-    },
-  };
-  const s = accentMap[accent] || accentMap.blue;
-
+function PremiumFeatureCard({ title, icon, cta }) {
   return (
-    <div
-      className={`flex flex-col items-center justify-center text-center gap-3 rounded-2xl border ${s.ring} ${s.bg} p-8 shadow-sm hover:shadow-md transition-shadow cursor-pointer`}
-      onClick={onClick}
-    >
-      <div className="w-12 h-12 rounded-full bg-white dark:bg-[var(--card-bg)] shadow flex items-center justify-center">
-        {icon}
+    <div className="relative rounded-2xl bg-white dark:bg-slate-900 overflow-hidden group shadow-[0_2px_10px_rgb(0,0,0,0.02)]">
+      <div className="absolute inset-0 opacity-30 dark:opacity-20 grayscale transition-all duration-500 pointer-events-none p-6 flex flex-col gap-4">
+        {[1, 2, 3].map(i => (
+          <div key={i} className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800/50 pb-3">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800" />
+              <div>
+                <div className="w-20 h-3 bg-slate-200 dark:bg-slate-700 rounded mb-1.5" />
+                <div className="w-12 h-2 bg-slate-100 dark:bg-slate-800 rounded" />
+              </div>
+            </div>
+            <div className="w-16 h-5 bg-green-200 dark:bg-green-900/30 rounded" />
+          </div>
+        ))}
       </div>
-      <div>
-        <p className="text-sm font-bold text-[var(--text)]">{label}</p>
-        <p className="text-xs text-[var(--text-muted)] mt-0.5 max-w-[220px]">{sub}</p>
+
+      <div className="absolute inset-0 backdrop-blur-[3px] bg-white/70 dark:bg-slate-950/70" />
+
+      <div className="relative z-10 flex flex-col items-center justify-center p-8 text-center h-full min-h-[250px]">
+        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white flex items-center justify-center shadow-md mb-4 group-hover:scale-110 transition-transform duration-300">
+          {icon}
+        </div>
+        <h3 className="text-base sm:text-lg font-black text-[var(--text)] mb-2">{title}</h3>
+        <p className="text-xs sm:text-sm text-[var(--text-muted)] mb-6 max-w-[220px] leading-relaxed">
+          Available exclusively for authenticated investors.
+        </p>
+        <button className="flex items-center gap-1.5 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-5 py-2.5 text-xs sm:text-sm font-extrabold shadow-sm active:scale-95 transition-all outline-none">
+          {cta}
+          <ChevronRight className="w-4 h-4" />
+        </button>
       </div>
-      <button
-        type="button"
-        onClick={(e) => { e.stopPropagation(); onClick(); }}
-        className={`rounded-lg px-4 py-2 text-xs font-extrabold shadow-sm active:scale-[0.98] transition ${s.btnBg}`}
-      >
-        {cta}
-      </button>
     </div>
   );
 }
@@ -550,45 +456,48 @@ function EmptyStateCard({ icon, label, sub, cta, onClick, accent }) {
 function TimelineCard({ category, time, title, description, ticker, price, change, changeType, tag }) {
   const isDown = changeType === "down";
   return (
-    <div className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-5 flex flex-col h-full shadow-sm hover:shadow-md transition-shadow group">
-      <div className="flex items-start justify-between mb-3">
-        <div className="flex items-center gap-1.5 flex-wrap">
-          <span className="inline-block rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 text-[10px] font-bold px-2 py-0.5 uppercase tracking-wide">
-            {tag}
-          </span>
-          <span className="flex items-center gap-1 text-[11px] text-[var(--text-muted)]">
-            <Clock className="w-3 h-3" />
-            {time}
-          </span>
+    <div className="relative group pl-6 sm:pl-8">
+      <div className="absolute left-[-5px] sm:left-[-1px] top-6 w-3 h-3 bg-white dark:bg-slate-950 border-2 border-[var(--accent)] rounded-full z-10 group-hover:scale-[1.3] transition-transform shadow-[0_0_0_4px_rgba(59,130,246,0.1)]" />
+
+      <div className="rounded-2xl bg-[var(--card-bg)] p-5 sm:p-6 shadow-[0_2px_10px_rgb(0,0,0,0.02)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] transition-all duration-300">
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="inline-block rounded-md bg-blue-50 dark:bg-blue-900/40 text-[var(--accent)] text-[10px] font-black px-2 py-0.5 uppercase tracking-wider">
+              {tag}
+            </span>
+            <span className="flex items-center gap-1.5 text-xs text-[var(--text-muted)] font-semibold">
+              <Clock className="w-3.5 h-3.5" />
+              {time}
+            </span>
+          </div>
         </div>
-        <div className="w-2 h-2 bg-green-400 rounded-full flex-shrink-0 mt-1" />
-      </div>
 
-      <h3 className="text-sm font-bold text-[var(--text)] leading-snug mb-2 group-hover:text-[var(--accent)] transition-colors">
-        {title}
-      </h3>
+        <h3 className="text-base font-extrabold text-[var(--text)] leading-snug mb-2 group-hover:text-[var(--accent)] transition-colors">
+          {title}
+        </h3>
 
-      <p className="text-xs text-[var(--text-muted)] leading-relaxed flex-grow mb-5">
-        {description}
-      </p>
+        <p className="text-sm text-[var(--text-muted)] leading-relaxed mb-5">
+          {description}
+        </p>
 
-      <div className="flex items-center justify-between mt-auto pt-3 border-t border-[var(--border)]">
-        <div className="flex items-center gap-2">
-          <span className="text-[11px] font-extrabold text-[var(--text)] bg-[var(--hover)] rounded px-2 py-1">
-            {ticker}
-          </span>
-          <span className="text-[11px] font-semibold text-[var(--text)]">₹{price}</span>
-          <span className={`flex items-center gap-0.5 text-[11px] font-bold ${isDown ? "text-red-500" : "text-green-500"}`}>
-            {isDown ? <TrendingDown className="w-3 h-3" /> : <TrendingUp className="w-3 h-3" />}
-            {change}
-          </span>
+        <div className="flex items-center justify-between pt-4 border-t border-[var(--border)]">
+          <div className="flex items-center gap-3">
+            <span className="text-xs font-black text-[var(--text)] bg-[var(--hover)] rounded-md px-2 py-1.5">
+              {ticker}
+            </span>
+            <span className="text-xs font-bold text-[var(--text)]">₹{price}</span>
+            <span className={`flex items-center gap-1 text-xs font-bold ${isDown ? "text-red-500" : "text-green-500"}`}>
+              {isDown ? <TrendingDown className="w-3.5 h-3.5" /> : <TrendingUp className="w-3.5 h-3.5" />}
+              {change}
+            </span>
+          </div>
+          <button
+            className="p-2 rounded-lg text-[var(--text-muted)] hover:text-[var(--accent)] hover:bg-[var(--hover)] transition-colors"
+            aria-label="Bookmark"
+          >
+            <Bookmark className="w-4 h-4" />
+          </button>
         </div>
-        <button
-          className="p-1.5 rounded-lg border border-[var(--border)] bg-[var(--bg)] hover:bg-[var(--hover)] text-[var(--text-muted)] hover:text-[var(--accent)] transition"
-          aria-label="Bookmark"
-        >
-          <Bookmark className="w-3.5 h-3.5" />
-        </button>
       </div>
     </div>
   );
@@ -611,11 +520,10 @@ function ReviewCard({ story, size = "normal" }) {
   const isFeatured = size === "featured";
   return (
     <div
-      className={`relative flex flex-col border border-[var(--border)] bg-[var(--card-bg)] shadow-sm hover:shadow-lg transition-all duration-200 group
+      className={`relative rounded-xl flex flex-col bg-[var(--card-bg)] shadow-sm hover:shadow-lg transition-all duration-200 group
         ${isFeatured ? "p-6 sm:p-7" : "p-5"}`}
     >
-      {/* top-left faint quote mark */}
-      <Quote className="absolute top-4 right-5 w-8 h-8 text-[var(--border)] opacity-60 rotate-180" />
+
 
       {/* tag */}
       {/* <span className={`inline-flex self-start rounded-full px-2.5 py-0.5 text-[10px] font-bold mb-3 ${story.tagColor}`}>
@@ -649,7 +557,6 @@ function ReviewCard({ story, size = "normal" }) {
           <div>
             <div className="flex items-center gap-1.5">
               <p className="text-[12px] font-bold text-[var(--text)]">{story.name}</p>
-              <BadgeCheck className="w-3.5 h-3.5 text-blue-500" />
             </div>
             <p className="text-[10px] text-[var(--text-muted)]">{story.role} · {story.location}</p>
           </div>
@@ -723,14 +630,13 @@ function SuccessStoriesSection() {
         ))}
       </div>
 
-      {/* Regular reviews — 4-col grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {regular.map((story, i) => (
-          <ReviewCard key={i} story={story} size="normal" />
+      {/* Regular reviews — 2-col grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {regular.slice(0, 2).map((story, i) => (
+          <ReviewCard key={i} story={story} size="featured" />
         ))}
       </div>
 
-      {/* Bottom CTA strip */}
       <div className="mt-6 rounded-2xl bg-gradient-to-r from-slate-900 to-slate-800 dark:from-slate-800 dark:to-slate-900 p-5 sm:p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
         <div>
           <p className="text-base font-extrabold text-white">Join 12,400+ investors making smarter decisions</p>
@@ -743,6 +649,65 @@ function SuccessStoriesSection() {
           <Sparkles className="w-4 h-4" />
           Try Free Report
         </button>
+      </div>
+    </section>
+  );
+}
+
+function FirmLogosSection() {
+  const logos = [
+    { name: "Deloitte", url: "https://upload.wikimedia.org/wikipedia/commons/5/56/Deloitte.svg" },
+    { name: "D E Shaw & Co", url: "https://upload.wikimedia.org/wikipedia/commons/e/e9/D._E._Shaw_%26_Co._logo.svg" },
+    { name: "Morgan Stanley", url: "https://upload.wikimedia.org/wikipedia/commons/3/34/Morgan_Stanley_Logo_1.svg" },
+    { name: "Vanguard", url: "https://upload.wikimedia.org/wikipedia/commons/4/47/The_Vanguard_Group_logo.svg" },
+    { name: "Goldman Sachs", url: "https://upload.wikimedia.org/wikipedia/commons/9/9f/Goldman_Sachs.svg" },
+    { name: "BlackRock", url: "https://upload.wikimedia.org/wikipedia/commons/1/1a/BlackRock_logo.svg" },
+    { name: "JPMorgan", url: "https://upload.wikimedia.org/wikipedia/commons/a/af/J_P_Morgan_Logo_2008_1.svg" },
+  ];
+
+  return (
+    <section className="py-12 pb-20 w-full overflow-hidden">
+      <style>
+        {`
+          @keyframes infinite-scroll {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+          }
+        `}
+      </style>
+      <div className="text-center mb-10">
+        <h3 className="text-lg font-bold text-[var(--text)]">Used by Investment Professionals at Top Firms</h3>
+      </div>
+
+      {/* Marquee Wrapper with fading edges */}
+      <div className="relative w-full max-w-5xl mx-auto flex items-center">
+        {/* Fading left/right masks */}
+        <div className="absolute inset-y-0 left-0 w-16 sm:w-32 bg-gradient-to-r from-[var(--bg)] to-transparent z-10 pointer-events-none" />
+        <div className="absolute inset-y-0 right-0 w-16 sm:w-32 bg-gradient-to-l from-[var(--bg)] to-transparent z-10 pointer-events-none" />
+
+        {/* Scrolling Track */}
+        <div
+          className="flex w-max shrink-0 gap-12 sm:gap-20 items-center justify-center animate-[infinite-scroll_40s_linear_infinite]"
+        >
+          {/* Render logos directly - first pass */}
+          {logos.map((logo, i) => (
+            <img
+              key={`logo1-${i}`}
+              src={logo.url}
+              alt={logo.name}
+              className="h-6 sm:h-8 w-auto object-contain grayscale opacity-40 hover:grayscale-0 hover:opacity-100 transition-all duration-300"
+            />
+          ))}
+          {/* Render logos directly - duplicate for seamless loop */}
+          {logos.map((logo, i) => (
+            <img
+              key={`logo2-${i}`}
+              src={logo.url}
+              alt={logo.name}
+              className="h-6 sm:h-8 w-auto object-contain grayscale opacity-40 hover:grayscale-0 hover:opacity-100 transition-all duration-300"
+            />
+          ))}
+        </div>
       </div>
     </section>
   );
