@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import SignupPopup from "../auth/SignupPopup";
+import AuthModal from "../auth/AuthModal";
+import Footer from "../Footer";
 import {
   Sparkles,
   Bookmark,
@@ -24,6 +25,7 @@ import {
 } from "lucide-react";
 import CONFIG from "../../config";
 import Navbar from "../Navbar";
+import ReportView from "../reports/ReportView";
 
 const PAIN_POINTS = [
   {
@@ -190,16 +192,22 @@ const STATS = [
   { icon: <ThumbsUp className="w-5 h-5" />, value: "96%", label: "Would recommend", color: "text-emerald-600 dark:text-emerald-400" },
 ];
 
-async function generateStockReport(ticker) {
+async function generateStockReport(query) {
   const base = CONFIG.API_BASE_URL || "";
-  const res = await fetch(`${base}/api/ai/generate-report`, {
+  const token = localStorage.getItem("sagealpha_token");
+  const res = await fetch(`${base}/api/report/generate`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ ticker: String(ticker).trim() }),
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify({ query: String(query).trim() }),
   });
   const data = await res.json();
-  if (!res.ok) throw new Error(data.message || "Failed to generate report");
-  return data;
+  if (!res.ok || data.success === false) {
+    throw new Error(data.message || "Failed to generate report");
+  }
+  return data.report;
 }
 
 function InvestorDashboard() {
@@ -208,7 +216,15 @@ function InvestorDashboard() {
   const [reportData, setReportData] = useState(null);
   const [isReportLoading, setIsReportLoading] = useState(false);
   const [reportError, setReportError] = useState("");
-  const [isSignupOpen, setIsSignupOpen] = useState(false);
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
+
+  // If user is logged in (token present), redirect to dashboard
+  useEffect(() => {
+    const token = localStorage.getItem("sagealpha_token");
+    if (token) {
+      navigate("/dashboard", { replace: true });
+    }
+  }, [navigate]);
 
   const handleGenerateReport = async (e) => {
     e.preventDefault();
@@ -217,7 +233,7 @@ function InvestorDashboard() {
 
     const token = localStorage.getItem('sagealpha_token');
     if (!token) {
-      setIsSignupOpen(true);
+      setIsAuthOpen(true);
       return;
     }
 
@@ -237,7 +253,7 @@ function InvestorDashboard() {
     const token = localStorage.getItem('sagealpha_token');
     if (!token) {
       setInput(t);
-      setIsSignupOpen(true);
+      setIsAuthOpen(true);
       return;
     }
 
@@ -259,9 +275,10 @@ function InvestorDashboard() {
     currentHour < 12 ? "Good morning" : currentHour < 17 ? "Good afternoon" : "Good evening";
 
   return (
-    <div className="min-h-screen bg-[var(--bg)] text-[var(--text)]">
-      <Navbar />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-4 pb-6 sm:pb-8">
+    <div className="min-h-screen bg-[var(--bg)] text-[var(--text)] flex flex-col">
+      <Navbar onSignIn={() => setIsAuthOpen(true)} />
+      <AuthModal isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} />
+      <div className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 pt-4 pb-6 sm:pb-8 w-full">
 
 
 
@@ -375,13 +392,10 @@ function InvestorDashboard() {
           </div>
         )}
 
-        {/* ── Generated Report (inline) ── */}
         {reportData ? (
-          <div className="mb-8 rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-5 shadow-sm">
-            <div className="flex items-center justify-between gap-3 mb-3">
-              <h2 className="text-base sm:text-lg font-extrabold text-[var(--text)]">
-                AI Report Preview
-              </h2>
+          <div className="mb-10">
+            <ReportView reportData={reportData} />
+            <div className="mt-2 flex justify-end">
               <button
                 type="button"
                 onClick={() => setReportData(null)}
@@ -390,9 +404,6 @@ function InvestorDashboard() {
                 Clear
               </button>
             </div>
-            <pre className="text-xs whitespace-pre-wrap break-words text-[var(--text-muted)] leading-relaxed">
-              {JSON.stringify(reportData, null, 2)}
-            </pre>
           </div>
         ) : null}
 
@@ -407,6 +418,7 @@ function InvestorDashboard() {
 
 
       </div>
+      <Footer />
     </div>
   );
 }

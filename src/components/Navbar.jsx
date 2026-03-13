@@ -1,5 +1,6 @@
-import React, { useMemo, useState } from "react";
-import { Menu, X } from "lucide-react";
+import React, { useEffect, useMemo, useState } from "react";
+import { Menu, X, Bell } from "lucide-react";
+import AlertsDrawer from "./alerts/AlertsDrawer";
 
 export default function Navbar({
   logoSrc = "/logo/logo.png",
@@ -7,6 +8,44 @@ export default function Navbar({
   onSignIn,
 }) {
   const [open, setOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [alertsOpen, setAlertsOpen] = useState(false);
+
+  useEffect(() => {
+    const readUser = () => {
+      try {
+        const raw = localStorage.getItem("sagealpha_user");
+        setCurrentUser(raw ? JSON.parse(raw) : null);
+      } catch {
+        setCurrentUser(null);
+      }
+    };
+
+    readUser();
+
+    const handler = () => readUser();
+    window.addEventListener("sagealpha-auth-changed", handler);
+    return () => window.removeEventListener("sagealpha-auth-changed", handler);
+  }, []);
+
+  const isLoggedIn = !!currentUser;
+
+  const handleLogout = () => {
+    try {
+      localStorage.removeItem("sagealpha_token");
+      localStorage.removeItem("sagealpha_user");
+    } catch {
+      // ignore
+    }
+    window.dispatchEvent(new Event("sagealpha-auth-changed"));
+  };
+
+  const avatarInitial =
+    (currentUser?.name || currentUser?.email || "?")
+      .toString()
+      .trim()
+      .charAt(0)
+      .toUpperCase() || "?";
 
   const items = useMemo(
     () =>
@@ -44,13 +83,44 @@ export default function Navbar({
           </nav>
 
           <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => (onSignIn ? onSignIn() : null)}
-              className="hidden md:inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-900 shadow-sm hover:bg-slate-50 active:scale-[0.98] transition"
-            >
-              Sign In
-            </button>
+            {!isLoggedIn ? (
+              <button
+                type="button"
+                onClick={() => (onSignIn ? onSignIn() : null)}
+                className="hidden md:inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-900 shadow-sm hover:bg-slate-50 active:scale-[0.98] transition"
+              >
+                Sign In
+              </button>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setAlertsOpen(true)}
+                  className="hidden md:inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900 shadow-sm transition"
+                  aria-label="Open alerts"
+                >
+                  <Bell className="w-4 h-4" />
+                </button>
+                <div className="hidden md:block relative group">
+                  <button
+                    type="button"
+                    className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-blue-600 text-white text-sm font-bold shadow-sm"
+                    aria-label="Account menu"
+                  >
+                    {avatarInitial}
+                  </button>
+                  <div className="pointer-events-none opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 group-hover:pointer-events-auto transition transform origin-top-right absolute right-0 mt-2 w-40 rounded-xl bg-white shadow-lg border border-slate-200 py-1 z-50">
+                    <button
+                      type="button"
+                      onClick={handleLogout}
+                      className="w-full text-left px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                    >
+                      Logout
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
 
             <button
               type="button"
@@ -77,20 +147,34 @@ export default function Navbar({
                   {item.label}
                 </a>
               ))}
-              <button
-                type="button"
-                onClick={() => {
-                  setOpen(false);
-                  if (onSignIn) onSignIn();
-                }}
-                className="mt-1 inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-900 shadow-sm hover:bg-slate-50 active:scale-[0.98] transition"
-              >
-                Sign In
-              </button>
+              {!isLoggedIn ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setOpen(false);
+                    if (onSignIn) onSignIn();
+                  }}
+                  className="mt-1 inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-900 shadow-sm hover:bg-slate-50 active:scale-[0.98] transition"
+                >
+                  Sign In
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setOpen(false);
+                    handleLogout();
+                  }}
+                  className="mt-1 inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-900 shadow-sm hover:bg-slate-50 active:scale-[0.98] transition"
+                >
+                  Logout
+                </button>
+              )}
             </nav>
           </div>
         ) : null}
       </div>
+      <AlertsDrawer isOpen={alertsOpen} onClose={() => setAlertsOpen(false)} />
     </header>
   );
 }
